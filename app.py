@@ -1,70 +1,83 @@
 import streamlit as st
+from streamlit_option_menu import option_menu
 import pandas as pd
 
-# 1. OSNOVNA PODEŠAVANJA
-st.set_page_config(page_title="Fit Pro Mentorstvo", page_icon="🌸")
+# 1. PODEŠAVANJA I DIZAJN (Kao fitMe)
+st.set_page_config(page_title="fitMe Mentorstvo", page_icon="💪", layout="wide")
 
-# 2. JEDNOSTAVAN DIZAJN
+# CSS za boje i kartice
 st.markdown("""
     <style>
-    .stApp { background-color: #FFF9FA; }
-    .card {
-        background: white; padding: 20px; border-radius: 15px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        border-left: 5px solid #FF4B6B; margin-bottom: 20px;
-    }
+    .main { background-color: #0e1117; }
+    .stMetric { background-color: #161b22; padding: 15px; border-radius: 10px; border: 1px solid #30363d; }
+    .card { background-color: #161b22; padding: 20px; border-radius: 10px; border: 1px solid #30363d; margin-bottom: 10px; }
+    h1, h2, h3 { color: #ff4b4b; }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. PRIJAVA (LOGIN) - Najjednostavnija verzija
-if 'auth' not in st.session_state:
-    st.session_state['auth'] = False
+# 2. MODERNI MENI (Sa leve strane)
+with st.sidebar:
+    st.image("https://cdn-icons-png.flaticon.com", width=100)
+    izbor = option_menu(
+        "Glavni Meni", 
+        ["Početna", "Kalkulator", "Trening", "Ishrana", "Admin"],
+        icons=['house', 'calculator', 'activity', 'egg-fried', 'lock'], 
+        menu_icon="cast", default_index=0,
+        styles={
+            "container": {"padding": "5!important", "background-color": "#0e1117"},
+            "icon": {"color": "#ff4b4b", "font-size": "25px"}, 
+            "nav-link": {"font-size": "16px", "text-align": "left", "margin":"0px", "--hover-color": "#262730"},
+            "nav-link-selected": {"background-color": "#ff4b4b"},
+        }
+    )
 
-if not st.session_state['auth']:
-    st.title("🔐 Prijava za članice")
-    lozinka = st.text_input("Unesi lozinku za pristup:", type="password")
-    if st.button("Uđi u aplikaciju"):
-        if lozinka == "fitnes2024": # Tvoja lozinka za klijentkinje
-            st.session_state['auth'] = True
+# 3. LOGIKA PRIJAVE (LOGIN)
+if 'ulogovan' not in st.session_state:
+    st.session_state['ulogovan'] = False
+
+if not st.session_state['ulogovan']:
+    st.title("💪 fitMe Prijava")
+    lozinka = st.text_input("Lozinka za članice:", type="password")
+    if st.button("UĐI"):
+        if lozinka == "fitnes2024":
+            st.session_state['ulogovan'] = True
             st.rerun()
         else:
-            st.error("Pogrešna lozinka. Kontaktiraj trenera.")
+            st.error("Pogrešna lozinka.")
 else:
-    # --- GLAVNI MENI ---
-    meni = st.sidebar.radio("Navigacija", ["🏠 Početna", "📊 Kalkulator", "🏋️ Trening", "🥗 Ishrana", "🔐 Admin"])
-
-    if meni == "🏠 Početna":
-        st.title("Dobrodošla! ✨")
-        st.markdown('<div class="card"><h3>Tvoj uspeh počinje danas!</h3><p>Prati planove i ne odustaj.</p></div>', unsafe_allow_html=True)
+    # --- POČETNA ---
+    if izbor == "Početna":
+        st.title("Dobrodošla u fitMe ✨")
+        st.write("Tvoja transformacija počinje ovde.")
         st.image("https://images.unsplash.com")
 
-    elif meni == "📊 Kalkulator":
-        st.header("🎯 Izračunaj svoje potrebe")
-        kg = st.number_input("Težina (kg)", 40, 150, 65)
-        visina = st.number_input("Visina (cm)", 120, 220, 165)
-        godine = st.number_input("Godine", 15, 80, 25)
+    # --- KALKULATOR ---
+    elif izbor == "Kalkulator":
+        st.title("📊 Kalkulator")
+        c1, c2 = st.columns(2)
+        with c1:
+            kg = st.number_input("Težina (kg)", 40, 150, 65)
+        with c2:
+            visina = st.number_input("Visina (cm)", 120, 220, 165)
         
         if st.button("Izračunaj"):
-            kalorije = (10 * kg) + (6.25 * visina) - (5 * godine) - 161
-            st.success(f"Tvoj osnovni metabolizam je: {int(kalorije)} kcal")
-            st.info("Za mršavljenje jedi oko 1500-1700 kcal dnevno.")
+            kalorije = (10 * kg) + (6.25 * visina) - 161
+            st.metric("Tvoj BMR", f"{int(kalorije)} kcal")
 
-    elif meni == "🏋️ Trening":
-        st.header("💪 Današnji trening")
+    # --- TRENING ---
+    elif izbor == "Trening":
+        st.title("🏋️ Trening Plan")
+        st.markdown('<div class="card"><h3>Danas: HIIT & Core</h3><p>Prati video i odradi sve serije.</p></div>', unsafe_allow_html=True)
         st.video("https://www.youtube.com")
-        st.write("1. Čučnjevi - 3x15\n2. Iskorak - 3x12\n3. Plank - 45 sekundi")
 
-    elif meni == "🥗 Ishrana":
-        st.header("🥗 Plan ishrane")
-        st.markdown("""
-        * **Doručak:** Ovsena kaša sa voćem
-        * **Ručak:** Piletina i riža
-        * **Večera:** Grilovano povrće i sir
-        """)
+    # --- ISHRANA ---
+    elif izbor == "Ishrana":
+        st.title("🥗 Ishrana")
+        st.info("Poveži svoju Google Tabelu ovde (kao u prethodnom koraku).")
 
-    elif meni == "🔐 Admin":
-        st.header("Admin Panel")
-        admin_pass = st.text_input("Admin šifra:", type="password")
+    # --- ADMIN ---
+    elif izbor == "Admin":
+        st.title("🔐 Admin Panel")
+        admin_pass = st.text_input("Admin lozinka:", type="password")
         if admin_pass == "admin123":
             st.success("Dobrodošla, šefice!")
-            st.write("Ovde možeš pratiti napredak svojih klijentkinja.")
